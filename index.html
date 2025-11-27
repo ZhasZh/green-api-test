@@ -1,141 +1,144 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8">
-<title>GREEN API Test</title>
-
-<style>
-    body {
-        font-family: Arial, sans-serif;
-        background:#f2f3f7;
-        margin:0;
-        padding:0;
-    }
-
-    .container {
-        display: flex;
-        gap: 25px;
-        padding: 40px;
-        max-width: 1300px;
-        margin: auto;
-    }
-
-    .left-panel, .right-panel {
-        background:white;
-        border-radius:12px;
-        padding:25px;
-        box-shadow:0 5px 15px rgba(0,0,0,.1);
-    }
-
-    .left-panel {
-        width:330px;
-        display:flex;
-        flex-direction:column;
-        gap:14px;
-    }
-
-    input, textarea, button {
-        width:100%;
-        padding:10px;
-        font-size:15px;
-        border-radius:8px;
-        border:1px solid #ccc;
-        box-sizing:border-box;
-    }
-
-    button {
-        background:#4CAF50;
-        color:white;
-        border:none;
-        cursor:pointer;
-        font-weight:bold;
-        transition:.25s;
-    }
-
-    button:hover {
-        background:#45a049;
-    }
-
-    .right-panel {
-        flex:1;
-    }
-
-    .title {
-        font-size:20px;
-        font-weight:bold;
-        margin-bottom:10px;
-    }
-
-    textarea {
-        height:500px;
-        resize:both;
-        font-family:monospace;
-        white-space:pre-wrap;
-        overflow:auto;
-    }
-</style>
+    <meta charset="UTF-8">
+    <title>Тестовое задание GREEN-API</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 30px;
+            background-color: #f7f7f7;
+        }
+        h1 {
+            color: #333;
+        }
+        input, textarea, button {
+            display: block;
+            margin: 10px 0;
+            padding: 8px;
+            font-size: 14px;
+        }
+        textarea {
+            width: 100%;
+            height: 200px;
+            resize: vertical;
+        }
+        button {
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+    </style>
 </head>
-
 <body>
 
-<div class="container">
-    
-    <div class="left-panel">
-        <input id="idInstance" placeholder="idInstance">
-        <input id="ApiTokenInstance" placeholder="ApiTokenInstance">
+<h1>GREEN-API Тестовое задание</h1>
 
-        <button onclick="getSettings()">getSettings</button>
-        <button onclick="getStateInstance()">getStateInstance</button>
+<label>idInstance:</label>
+<input type="text" id="idInstance" placeholder="Введите idInstance">
 
-        <input id="phone" placeholder="77071234567">
-        <input id="message" placeholder="Ваш текст">
+<label>ApiTokenInstance:</label>
+<input type="text" id="apiTokenInstance" placeholder="Введите ApiTokenInstance">
 
-        <button onclick="sendMessage()">sendMessage</button>
+<label>Телефон получателя (в формате 770XXXXXXX@c.us):</label>
+<input type="text" id="phone" placeholder="Например, 77012345678@c.us">
 
-        <input id="filePhone" placeholder="77071234567">
-        <input id="fileUrl" placeholder="https://example.com/file.jpg">
+<label>Сообщение для отправки:</label>
+<input type="text" id="message" placeholder="Текст сообщения">
 
-        <button onclick="sendFileByUrl()">sendFileByUrl</button>
-    </div>
+<label>Ссылка на файл для отправки:</label>
+<input type="text" id="fileUrl" placeholder="URL файла">
 
-    <div class="right-panel">
-        <div class="title">Ответ:</div>
-        <textarea id="response" readonly></textarea>
-    </div>
-</div>
+<button onclick="getSettings()">getSettings</button>
+<button onclick="getStateInstance()">getStateInstance</button>
+<button onclick="sendMessage()">sendMessage</button>
+<button onclick="sendFileByUrl()">sendFileByUrl</button>
 
+<label>Ответ API:</label>
+<textarea id="responseField" readonly></textarea>
 
 <script>
-async function sendRequest(method, data={}) {
-    const id = document.getElementById("idInstance").value;
-    const token = document.getElementById("ApiTokenInstance").value;
+    const responseField = document.getElementById("responseField");
 
-    const url = `https://api.green-api.com/waInstance${id}/${method}/${token}`;
-    const res = await fetch(url,{
-        method:"POST",
-        headers:{ "Content-Type":"application/json" },
-        body:Object.keys(data).length ? JSON.stringify(data) : null
-    });
+    function getSettings() {
+        const idInstance = document.getElementById("idInstance").value;
+        const apiTokenInstance = document.getElementById("apiTokenInstance").value;
 
-    document.getElementById("response").value = await res.text();
-}
+        fetch(`https://api.green-api.com/waInstance${idInstance}/getSettings/${apiTokenInstance}`, {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({})
+        })
+        .then(res => res.json())
+        .then(data => {
+            responseField.value = JSON.stringify(data, null, 2);
+        })
+        .catch(err => responseField.value = "Ошибка: " + err);
+    }
 
-// ===== API Методы =====
-function getSettings()       { sendRequest("getSettings"); }
-function getStateInstance()  { sendRequest("getStateInstance"); }
-function sendMessage() {
-    sendRequest("sendMessage",{
-        chatId: document.getElementById("phone").value+"@c.us",
-        message: document.getElementById("message").value
-    });
-}
-function sendFileByUrl() {
-    sendRequest("sendFileByUrl",{
-        chatId: document.getElementById("filePhone").value+"@c.us",
-        urlFile: document.getElementById("fileUrl").value,
-        fileName:"file"
-    });
-}
+    function getStateInstance() {
+        const idInstance = document.getElementById("idInstance").value;
+        const apiTokenInstance = document.getElementById("apiTokenInstance").value;
+
+        fetch(`https://api.green-api.com/waInstance${idInstance}/getStateInstance/${apiTokenInstance}`, {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({})
+        })
+        .then(res => res.json())
+        .then(data => {
+            responseField.value = JSON.stringify(data, null, 2);
+        })
+        .catch(err => responseField.value = "Ошибка: " + err);
+    }
+
+    function sendMessage() {
+        const idInstance = document.getElementById("idInstance").value;
+        const apiTokenInstance = document.getElementById("apiTokenInstance").value;
+        const phone = document.getElementById("phone").value;
+        const message = document.getElementById("message").value;
+
+        fetch(`https://api.green-api.com/waInstance${idInstance}/sendMessage/${apiTokenInstance}`, {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({
+                chatId: phone,
+                message: message
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            responseField.value = JSON.stringify(data, null, 2);
+        })
+        .catch(err => responseField.value = "Ошибка: " + err);
+    }
+
+    function sendFileByUrl() {
+        const idInstance = document.getElementById("idInstance").value;
+        const apiTokenInstance = document.getElementById("apiTokenInstance").value;
+        const phone = document.getElementById("phone").value;
+        const fileUrl = document.getElementById("fileUrl").value;
+
+        fetch(`https://api.green-api.com/waInstance${idInstance}/sendFileByUrl/${apiTokenInstance}`, {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({
+                chatId: phone,
+                url: fileUrl,
+                caption: "Файл для теста"
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            responseField.value = JSON.stringify(data, null, 2);
+        })
+        .catch(err => responseField.value = "Ошибка: " + err);
+    }
 </script>
 
 </body>
