@@ -1,135 +1,114 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8">
-<title>GreenAPI Test App</title>
+    <meta charset="UTF-8">
+    <title>Green API Tester</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f2f4f7;
+            margin: 0;
+            padding: 0;
+        }
 
-<style>
-    body {
-        font-family: sans-serif;
-        margin: 0;
-        padding: 20px;
-        background: #f8f8f8;
-    }
+        .container {
+            display: flex;
+            height: 100vh;
+        }
 
-    .wrapper {
-        display: flex;
-        gap: 30px;
-    }
+        .sidebar {
+            width: 260px;
+            background: #fff;
+            padding: 20px;
+            border-right: 1px solid #ddd;
+        }
 
-    .left {
-        width: 270px;
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-    }
+        input, button, textarea {
+            width: 100%;
+            padding: 8px;
+            margin-top: 8px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            font-size: 14px;
+        }
 
-    input, button, textarea {
-        width: 100%;
-        padding: 10px;
-        font-size: 14px;
-        border-radius: 4px;
-        border: 1px solid #ccc;
-    }
+        button {
+            background: #0a7cff;
+            color: #fff;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+        }
 
-    button {
-        background: white;
-        cursor: pointer;
-        border: 1px solid #bdbdbd;
-        font-weight: bold;
-    }
+        button:hover {
+            background: #0e63c7;
+        }
 
-    .right {
-        flex: 1;
-    }
+        .response-block {
+            flex: 1;
+            padding: 20px;
+        }
 
-    textarea {
-        width: 100%;
-        height: 450px;
-        resize: none;
-        background: #fff;
-    }
+        .response-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
 
-    .label {
-        font-weight: bold;
-        margin-bottom: -5px;
-    }
-</style>
+        textarea {
+            height: 350px;
+            resize: both; /* Вот это позволяет растягивать размер */
+        }
+    </style>
 </head>
 <body>
 
-<div class="wrapper">
+<div class="container">
 
-    <!-- Левая колонка -->
-    <div class="left">
-
+    <!-- Левая панель -->
+    <div class="sidebar">
         <input id="idInstance" placeholder="idInstance">
         <input id="apiToken" placeholder="ApiTokenInstance">
 
         <button onclick="getSettings()">getSettings</button>
-        <button onclick="getStateInstance()">getStateInstance</button>
+        <button onclick="getState()">getStateInstance</button>
 
-        <input id="phone" placeholder="77771234567">
-        <input id="message" placeholder="Hello World!">
+        <input id="sendNumber" placeholder="Номер получателя">
+        <input id="sendText" placeholder="Текст сообщения">
         <button onclick="sendMessage()">sendMessage</button>
 
-        <input id="filePhone" placeholder="77771234567">
-        <input id="fileUrl" placeholder="https://my.site.com/img/horse.png">
-        <button onclick="sendFile()">sendFileByUrl</button>
-
+        <input id="imageUrl" placeholder="URL картинки">
+        <button onclick="sendImage()">sendFileByUrl</button>
     </div>
 
-    <!-- Правая колонка -->
-    <div class="right">
-        <div class="label">Ответ:</div>
-        <textarea id="response" readonly></textarea>
+    <!-- Правая панель ответа -->
+    <div class="response-block">
+        <div class="response-title">Ответ:</div>
+        <textarea id="responseOutput" readonly></textarea>
     </div>
 
 </div>
 
-
-<!-- ========== API ЛОГИКА ========== -->
 <script>
-function apiUrl(method){
-    const id = document.getElementById("idInstance").value;
-    const token = document.getElementById("apiToken").value;
-    return `https://api.green-api.com/waInstance${id}/${method}/${token}`;
-}
+    function out(data) {
+        document.getElementById("responseOutput").value =
+                JSON.stringify(data, null, 4);
+    }
 
-async function request(method, body=null){
-    const result = await fetch(apiUrl(method), {
-        method: body ? "POST" : "GET",
-        headers: { "Content-Type": "application/json" },
-        body: body ? JSON.stringify(body) : null
-    });
+    async function sendMessage() {
+        let id = idInstance.value;
+        let token = apiToken.value;
+        let number = sendNumber.value;
+        let text = sendText.value;
 
-    const data = await result.json();
-    document.getElementById("response").value = JSON.stringify(data, null, 2);
-}
+        let res = await fetch(`https://api.green-api.com/waInstance${id}/SendMessage/${token}`, {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({chatId: number + "@c.us", message: text})
+        });
 
-function getSettings(){
-    request("getSettings");
-}
-
-function getStateInstance(){
-    request("getStateInstance");
-}
-
-function sendMessage(){
-    request("sendMessage", {
-        chatId: document.getElementById("phone").value + "@c.us",
-        message: document.getElementById("message").value
-    });
-}
-
-function sendFile(){
-    request("sendFileByUrl", {
-        chatId: document.getElementById("filePhone").value + "@c.us",
-        urlFile: document.getElementById("fileUrl").value,
-        fileName: "file"
-    });
-}
+        out(await res.json());
+    }
 </script>
-
 </body>
 </html>
